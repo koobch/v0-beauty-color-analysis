@@ -32,6 +32,47 @@ interface ResultScreenProps {
   onColorSelect: (colorName: string, colorValue: string) => void
 }
 
+function FabricSwatch({
+  color,
+  name,
+  onClick,
+}: {
+  color: string
+  name: string
+  onClick: () => void
+}) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center group">
+      <div className="relative w-14 h-14 rounded-full group-hover:scale-110 transition-transform duration-300">
+        {/* Base color layer */}
+        <div className="absolute inset-0 rounded-full" style={{ backgroundColor: color }} />
+        {/* Subtle fabric texture overlay - soft grain effect */}
+        <div
+          className="absolute inset-0 rounded-full opacity-[0.03] mix-blend-overlay"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          }}
+        />
+        {/* Gentle inner shadow for depth - studio lighting effect */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.08), inset 0 -1px 2px rgba(255,255,255,0.05)",
+          }}
+        />
+        {/* Soft velvety matte finish - subtle lighting gradient */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: "linear-gradient(145deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(0,0,0,0.04) 100%)",
+          }}
+        />
+      </div>
+      <span className="text-[10px] text-neutral-600 mt-1.5 font-light">{name}</span>
+    </button>
+  )
+}
+
 export default function ResultScreen({ onColorSelect }: ResultScreenProps) {
   return (
     <div className="min-h-screen bg-[#FAF9F7] flex flex-col py-8 px-6">
@@ -61,17 +102,12 @@ export default function ResultScreen({ onColorSelect }: ResultScreenProps) {
           <h2 className="text-base font-normal text-neutral-800 mb-3">Makeup Color Card</h2>
           <div className="flex gap-3 justify-between mb-3">
             {MAKEUP_COLORS.map((item, index) => (
-              <button
+              <FabricSwatch
                 key={index}
+                color={item.color}
+                name={item.name}
                 onClick={() => onColorSelect(item.name, item.color)}
-                className="flex flex-col items-center group"
-              >
-                <div
-                  className="w-14 h-14 rounded-full shadow-sm group-hover:scale-110 transition-transform duration-300"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-[10px] text-neutral-600 mt-1.5 font-light">{item.name}</span>
-              </button>
+              />
             ))}
           </div>
           <p className="text-[11px] text-neutral-500 font-light leading-relaxed">
@@ -84,17 +120,12 @@ export default function ResultScreen({ onColorSelect }: ResultScreenProps) {
           <h2 className="text-base font-normal text-neutral-800 mb-3">Fashion Color Card</h2>
           <div className="flex gap-3 justify-between mb-3">
             {FASHION_COLORS.map((item, index) => (
-              <button
+              <FabricSwatch
                 key={index}
+                color={item.color}
+                name={item.name}
                 onClick={() => onColorSelect(item.name, item.color)}
-                className="flex flex-col items-center group"
-              >
-                <div
-                  className="w-14 h-14 rounded-full shadow-sm group-hover:scale-110 transition-transform duration-300"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-[10px] text-neutral-600 mt-1.5 font-light">{item.name}</span>
-              </button>
+              />
             ))}
           </div>
           <p className="text-[11px] text-neutral-500 font-light leading-relaxed">
