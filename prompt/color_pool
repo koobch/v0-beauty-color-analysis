@@ -1,0 +1,178 @@
+{
+  "Spring Warm Light": {
+    "makeup_color_pool": [
+      "Light Peach",
+      "Coral Pink",
+      "Warm Apricot",
+      "Soft Salmon",
+      "Peach Beige",
+      "Light Coral",
+      "Warm Nude",
+      "Apricot Pink"
+    ],
+    "fashion_color_pool": [
+      "Ivory",
+      "Butter Yellow",
+      "Light Camel",
+      "Mint",
+      "Soft Coral",
+      "Warm Light Beige",
+      "Light Aqua",
+      "Peach Ivory"
+    ]
+  },
+  "Spring Warm Bright": {
+    "makeup_color_pool": [
+      "Bright Coral",
+      "Warm Pink",
+      "Clear Orange",
+      "Peach Red",
+      "Tomato Red",
+      "Coral Rose",
+      "Warm Flamingo",
+      "Clear Apricot"
+    ],
+    "fashion_color_pool": [
+      "Coral",
+      "Warm Red",
+      "Bright Navy",
+      "Emerald",
+      "Golden Yellow",
+      "Clear Camel",
+      "Turquoise",
+      "Warm Apple Green"
+    ]
+  },
+  "Summer Cool Light": {
+    "makeup_color_pool": [
+      "Baby Pink",
+      "Cool Peach",
+      "Light Rose",
+      "Soft Pink Beige",
+      "Lavender Pink",
+      "Sheer Pink",
+      "Cool Blush",
+      "Pale Mauve"
+    ],
+    "fashion_color_pool": [
+      "Light Gray",
+      "Soft Blue",
+      "Lavender",
+      "Cool Ivory",
+      "Powder Pink",
+      "Sky Blue",
+      "Light Periwinkle",
+      "Mist Blue"
+    ]
+  },
+  "Summer Cool Mute": {
+    "makeup_color_pool": [
+      "Dusty Rose",
+      "Muted Pink",
+      "Rose Beige",
+      "Soft Plum",
+      "Mauve",
+      "Cool Brown Pink",
+      "Muted Berry",
+      "Smoky Rose"
+    ],
+    "fashion_color_pool": [
+      "Dusty Blue",
+      "Cool Taupe",
+      "Soft Navy",
+      "Muted Lavender",
+      "Charcoal Gray",
+      "Mauve Gray",
+      "Smoky Blue",
+      "Cool Stone"
+    ]
+  },
+  "Autumn Warm Mute": {
+    "makeup_color_pool": [
+      "Muted Peach",
+      "Soft Beige",
+      "Warm Rose Brown",
+      "Terracotta",
+      "Cinnamon",
+      "Brick Nude",
+      "Soft Coral Brown",
+      "Warm Taupe Beige"
+    ],
+    "fashion_color_pool": [
+      "Camel",
+      "Warm Taupe",
+      "Olive Khaki",
+      "Mocha",
+      "Muted Mustard",
+      "Dusty Teal",
+      "Soft Brown",
+      "Warm Olive"
+    ]
+  },
+  "Autumn Warm Deep": {
+    "makeup_color_pool": [
+      "Deep Brick",
+      "Burgundy Brown",
+      "Dark Terracotta",
+      "Warm Wine",
+      "Chocolate Brown",
+      "Burnt Orange",
+      "Deep Cinnamon",
+      "Mahogany"
+    ],
+    "fashion_color_pool": [
+      "Dark Brown",
+      "Deep Olive",
+      "Burgundy",
+      "Warm Navy",
+      "Espresso",
+      "Forest Green",
+      "Rust",
+      "Dark Camel"
+    ]
+  },
+  "Winter Cool Bright": {
+    "makeup_color_pool": [
+      "True Red",
+      "Fuchsia",
+      "Hot Pink",
+      "Cool Cherry",
+      "Clear Plum",
+      "Magenta",
+      "Crimson",
+      "Electric Pink"
+    ],
+    "fashion_color_pool": [
+      "Pure Black",
+      "Cobalt Blue",
+      "Emerald",
+      "True Red",
+      "White",
+      "Royal Purple",
+      "Ice Gray",
+      "Cool Lemon"
+    ]
+  },
+  "Winter Cool Deep": {
+    "makeup_color_pool": [
+      "Wine Red",
+      "Deep Plum",
+      "Black Cherry",
+      "Burgundy",
+      "Dark Berry",
+      "Cool Brown Red",
+      "Blood Red",
+      "Deep Mulberry"
+    ],
+    "fashion_color_pool": [
+      "Black",
+      "Charcoal",
+      "Deep Navy",
+      "Burgundy",
+      "Dark Forest Green",
+      "Ink Blue",
+      "Eggplant",
+      "Cool Espresso"
+    ]
+  }
+}
