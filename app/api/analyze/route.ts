@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                userId: userId,
+                client_uuid: userId,
                 image: image,
                 timestamp: timestamp || new Date().toISOString(),
             }),

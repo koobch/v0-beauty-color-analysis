@@ -40,15 +40,22 @@ export default function Home() {
       } else {
         // 실패: 에러 처리
         setAnalysisError(result.error || '알 수 없는 오류가 발생했습니다.')
-        alert(`분석 실패: ${result.error}`)
-        // 카메라 화면으로 돌아가기
+        // 카메라 화면으로 먼저 돌아가기
         setCurrentScreen("camera")
+        // 화면 전환 후 alert 표시
+        setTimeout(() => {
+          alert(`분석 실패: ${result.error}\n\n다시 촬영해주세요.`)
+        }, 100)
       }
     } catch (error) {
       console.error('[App] 이미지 분석 중 오류:', error)
       setAnalysisError(error instanceof Error ? error.message : '오류가 발생했습니다.')
-      alert('이미지 분석 중 오류가 발생했습니다.')
+      // 카메라 화면으로 먼저 돌아가기
       setCurrentScreen("camera")
+      // 화면 전환 후 alert 표시
+      setTimeout(() => {
+        alert('이미지 분석 중 오류가 발생했습니다.\n\n다시 촬영해주세요.')
+      }, 100)
     } finally {
       setIsAnalyzing(false)
     }
@@ -67,7 +74,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {currentScreen === "landing" && <LandingScreen onStart={handleStartAnalysis} />}
-      {currentScreen === "camera" && <CameraScreen onCapture={handleCameraCapture} />}
+      {currentScreen === "camera" && <CameraScreen onCapture={handleCameraCapture} onBack={() => setCurrentScreen("landing")} />}
       {currentScreen === "loading" && (
         <div className="min-h-screen bg-[#FAF9F7] flex flex-col items-center justify-center">
           <div className="text-center">
