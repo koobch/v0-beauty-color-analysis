@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import AdBanner from "@/components/AdBanner"
 
 const PERSONAL_COLOR_TYPE = {
   title: "Winter Mute",
@@ -36,6 +37,13 @@ export default function ResultScreen({ onColorSelect }: ResultScreenProps) {
   return (
     <div className="min-h-screen bg-[#FAF9F7] flex flex-col py-8 px-6">
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
+        {/* 광고 배너 - 상단 */}
+        <AdBanner
+          adSlot="YOUR_AD_SLOT_ID"
+          adFormat="horizontal"
+          className="mb-6"
+        />
+
         {/* Title Section */}
         <div className="text-center mb-6">
           <h1 className="text-[28px] font-light text-neutral-800 mb-2 tracking-tight">{PERSONAL_COLOR_TYPE.title}</h1>
