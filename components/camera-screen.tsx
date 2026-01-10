@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { captureImageFromVideo } from "@/lib/image-utils"
 
 interface CameraScreenProps {
-  onCapture: () => void
+  onCapture: (imageBase64: string) => void
 }
 
 export default function CameraScreen({ onCapture }: CameraScreenProps) {
@@ -36,10 +37,23 @@ export default function CameraScreen({ onCapture }: CameraScreenProps) {
   }, [])
 
   const handleCapture = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop())
+    try {
+      // Video 요소에서 이미지 캡처 및 FHD 압축
+      if (videoRef.current) {
+        const imageBase64 = captureImageFromVideo(videoRef.current)
+
+        // 카메라 스트림 중지
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop())
+        }
+
+        // 캡처된 이미지를 부모 컴포넌트로 전달
+        onCapture(imageBase64)
+      }
+    } catch (error) {
+      console.error('[Camera] 이미지 캡처 실패:', error)
+      alert('이미지 캡처에 실패했습니다. 다시 시도해주세요.')
     }
-    onCapture()
   }
 
   return (
