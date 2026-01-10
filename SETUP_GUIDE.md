@@ -4,17 +4,17 @@
 
 프로젝트 루트 디렉토리에 `.env.local` 파일을 생성하고 다음 내용을 추가하세요:
 
-```env
+\`\`\`env
 N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-webhook-id
-```
+\`\`\`
 
 **실제 n8n 웹훅 URL로 교체해야 합니다.**
 
 ## 개발 서버 실행
 
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 브라우저에서 `http://localhost:3000`으로 접속하여 테스트하세요.
 
