@@ -5,6 +5,7 @@ import LandingScreen from "@/components/landing-screen"
 import CameraScreen from "@/components/camera-screen"
 import ResultScreen from "@/components/result-screen"
 import ColorImmersiveScreen from "@/components/color-immersive-screen"
+import LoadingScreen from "@/components/loading-screen"
 import { analyzeImage } from "@/lib/api"
 import { generateUUID } from "@/lib/image-utils"
 import { AnalysisResult } from "@/lib/constants" // 위에서 만든 파일 import
@@ -82,14 +83,7 @@ export default function Home() {
     <div className="min-h-screen">
       {currentScreen === "landing" && <LandingScreen onStart={handleStartAnalysis} />}
       {currentScreen === "camera" && <CameraScreen onCapture={handleCameraCapture} onBack={() => setCurrentScreen("landing")} />}
-      {currentScreen === "loading" && (
-        <div className="min-h-screen bg-[#FAF9F7] flex flex-col items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-800 mb-4"></div>
-            <p className="text-neutral-600 text-sm">이미지를 분석하고 있습니다...</p>
-          </div>
-        </div>
-      )}
+      {currentScreen === "loading" && <LoadingScreen />}
       {currentScreen === "result" && <ResultScreen result={analysisResult} capturedImage={capturedImage} onColorSelect={handleColorSelect} />}
       {currentScreen === "immersive" && selectedColor && (
         <ColorImmersiveScreen colorName={selectedColor.name} color={selectedColor.color} onBack={handleBackToResult} />
