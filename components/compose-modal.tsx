@@ -66,11 +66,11 @@ export default function ComposeModal({ isOpen, onClose, composedImageUrl, isLoad
                 {isLoading && (
                     <div className="flex flex-col items-center justify-center py-20 px-6">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-neutral-200 border-t-neutral-800 mb-4" />
-                        <h3 className="text-base font-normal text-neutral-800 mb-2">이미지 합성 중...</h3>
+                        <h3 className="text-base font-normal text-neutral-800 mb-2">얼굴 합성 중...</h3>
                         <p className="text-sm text-neutral-500 font-light text-center">
-                            AI가 당신의 얼굴에 새로운 스타일을 입히고 있습니다.
+                            AI가 당신의 얼굴을 예시 스타일에 정확히 합성하고 있습니다.
                             <br />
-                            잠시만 기다려주세요 (약 10-15초)
+                            잠시만 기다려주세요 (약 15-20초)
                         </p>
                     </div>
                 )}
