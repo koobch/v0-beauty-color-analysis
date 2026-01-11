@@ -90,7 +90,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      {currentScreen === "result" && <ResultScreen result={analysisResult} onColorSelect={handleColorSelect} />}
+      {currentScreen === "result" && <ResultScreen result={analysisResult} capturedImage={capturedImage} onColorSelect={handleColorSelect} />}
       {currentScreen === "immersive" && selectedColor && (
         <ColorImmersiveScreen colorName={selectedColor.name} color={selectedColor.color} onBack={handleBackToResult} />
       )}

@@ -97,3 +97,66 @@ export async function analyzeImage(
         };
     }
 }
+
+export interface ComposeResult {
+    success: boolean;
+    composedImageUrl?: string;
+    error?: string;
+}
+
+/**
+ * 이미지 합성 API 호출
+ * @param userImageBase64 - 사용자 이미지 (Base64)
+ * @param exampleImageUrl - 예시 이미지 URL
+ * @returns 합성된 이미지 URL
+ */
+export async function composeImage(
+    userImageBase64: string,
+    exampleImageUrl: string
+): Promise<ComposeResult> {
+    try {
+        const response = await fetchWithTimeout(
+            '/api/compose',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userImage: userImageBase64,
+                    exampleImageUrl: exampleImageUrl
+                }),
+            },
+            60000 // 60초 타임아웃
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || '합성 실패');
+        }
+
+        const data = await response.json();
+        return {
+            success: true,
+            composedImageUrl: data.composedImageUrl
+        };
+    } catch (error) {
+        console.error('[API] 이미지 합성 실패:', error);
+
+        let errorMessage = '이미지 합성에 실패했습니다.';
+        if (error instanceof Error) {
+            if (error.message.includes('요청 시간이 초과')) {
+                errorMessage = '합성 시간이 초과되었습니다. 다시 시도해주세요.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = '네트워크 연결을 확인해주세요.';
+            } else {
+                errorMessage = error.message;
+            }
+        }
+
+        return {
+            success: false,
+            error: errorMessage,
+        };
+    }
+}
