@@ -25,10 +25,22 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
   const exampleImages: ExampleImage[] = EXAMPLE_IMAGES[result.type] || EXAMPLE_IMAGES["default"];
 
   // 이미지 합성 핸들러
-  const handleComposeClick = async (exampleImageUrl: string) => {
+  const handleComposeClick = async (exampleImageUrl: string, exampleDescription: string) => {
     if (!capturedImage) {
       alert('사용자 이미지가 없습니다. 다시 촬영해주세요.');
       return;
+    }
+
+    // 🔥 확인 다이얼로그 추가
+    const confirmed = confirm(
+      `"${exampleDescription}" 스타일을 당신의 얼굴에 합성하시겠습니까?\n\n` +
+      `⏱️ 약 15-20초 소요됩니다.\n` +
+      `💡 AI가 당신의 얼굴을 예시 이미지의 스타일로 변환합니다.\n\n` +
+      `계속하시겠습니까?`
+    );
+
+    if (!confirmed) {
+      return; // 취소하면 아무것도 안 함
     }
 
     try {
@@ -36,7 +48,7 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
       setIsModalOpen(true) // 모달 열기 (로딩 상태)
       setComposedImageUrl(null)
 
-      console.log('[ResultScreen] 이미지 합성 시작:', exampleImageUrl);
+      console.log('[ResultScreen] Replicate Face Swap 시작:', exampleImageUrl);
 
       const result = await composeImage(capturedImage, exampleImageUrl);
 
@@ -158,7 +170,7 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
             {exampleImages.map((img, idx) => (
               <button
                 key={idx}
-                onClick={() => handleComposeClick(img.url)}
+                onClick={() => handleComposeClick(img.url, img.description)}
                 disabled={isComposing}
                 className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 group disabled:opacity-50 disabled:cursor-not-allowed"
               >

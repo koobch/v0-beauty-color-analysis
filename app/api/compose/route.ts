@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Replicate from 'replicate';
 
 /**
- * 이미지 합성 API Route (OpenAI GPT-4 Vision 사용)
- * 사용자 이미지와 예시 이미지를 합성하여 새로운 이미지 생성
+ * 이미지 합성 API Route (Replicate Face Swap 사용)
+ * 사용자 얼굴을 예시 이미지에 정확하게 합성
  * 
  * 개인정보 보호: 이미지는 처리 중에만 사용되고 저장되지 않음
  */
@@ -18,59 +19,53 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 2. OpenAI API 키 검증
-        const openaiApiKey = process.env.OPENAI_API_KEY;
-        if (!openaiApiKey) {
-            console.error('[Compose API] OPENAI_API_KEY 환경변수가 설정되지 않았습니다.');
+        // 2. Replicate API 토큰 검증
+        const replicateToken = process.env.REPLICATE_API_TOKEN;
+        if (!replicateToken) {
+            console.error('[Compose API] REPLICATE_API_TOKEN 환경변수가 설정되지 않았습니다.');
             return NextResponse.json(
-                { error: '서버 설정 오류가 발생했습니다.' },
+                { error: '서버 설정 오류가 발생했습니다. Replicate API 토큰을 확인해주세요.' },
                 { status: 500 }
             );
         }
 
-        console.log('[Compose API] 이미지 합성 시작');
+        console.log('[Compose API] Replicate Face Swap 시작');
 
-        // 3. 예시 이미지 URL을 Base64로 변환 (public 폴더에서 가져오기)
-        const exampleImageBase64 = await fetchImageAsBase64(exampleImageUrl);
+        // 3. 예시 이미지 URL을 절대 경로로 변환
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const fullExampleImageUrl = exampleImageUrl.startsWith('http')
+            ? exampleImageUrl
+            : `${baseUrl}${exampleImageUrl}`;
 
-        // 4. OpenAI GPT-4 Vision API 호출 (DALL-E 3 사용)
-        // 얼굴 스왑 방식: 사용자 얼굴 + 예시 스타일을 합성
-        const dalleResponse = await fetch('https://api.openai.com/v1/images/generations', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${openaiApiKey}`,
-            },
-            body: JSON.stringify({
-                model: 'dall-e-3',
-                prompt: `Create a hyper-realistic portrait combining these two elements:
-1. The facial features and face structure from the first image (user photo)
-2. The makeup style, hair color, and overall color tone from the second image (example style)
+        console.log('[Compose API] 예시 이미지 URL:', fullExampleImageUrl);
 
-Keep the person's identity and facial features identical to the first image, but apply the makeup colors, hair styling, and color scheme from the second image. The result should look natural and professional, like a beauty transformation photo. White background, 8k quality, beauty photography style.`,
-                n: 1,
-                size: '1024x1024',
-                quality: 'standard',
-                response_format: 'url'
-            }),
+        // 4. Replicate 클라이언트 초기화
+        const replicate = new Replicate({
+            auth: replicateToken,
         });
 
-        if (!dalleResponse.ok) {
-            const errorData = await dalleResponse.json().catch(() => ({}));
-            console.error('[Compose API] OpenAI 호출 실패:', errorData);
-            throw new Error('이미지 합성에 실패했습니다.');
-        }
+        // 5. Face Swap 모델 실행
+        // 검증된 공개 모델: lucataco/faceswap 또는 omniedgeio/face-swap
+        const output = await replicate.run(
+            "lucataco/faceswap:9a4863ba4585fa16fa35c4dacf2d0633308bb2f2a6101ea259190c123e83d17d",
+            {
+                input: {
+                    input_image: userImage, // 사용자 얼굴 (Base64)
+                    swap_image: fullExampleImageUrl, // 예시 이미지 (URL 또는 Base64)
+                }
+            }
+        );
 
-        const dalleResult = await dalleResponse.json();
-        const composedImageUrl = dalleResult.data?.[0]?.url;
+        // 6. 결과 처리 (lucataco/faceswap는 단일 URL 반환)
+        const composedImageUrl = output as unknown as string;
 
         if (!composedImageUrl) {
             throw new Error('합성된 이미지를 생성하지 못했습니다.');
         }
 
-        console.log('[Compose API] 이미지 합성 성공');
+        console.log('[Compose API] Face Swap 성공:', composedImageUrl);
 
-        // 5. 생성된 이미지 URL 반환
+        // 7. 합성 결과 반환
         return NextResponse.json({
             success: true,
             composedImageUrl: composedImageUrl
@@ -78,34 +73,25 @@ Keep the person's identity and facial features identical to the first image, but
 
     } catch (error) {
         console.error('[Compose API] 처리 중 오류:', error);
+
+        // 에러 메시지 상세화
+        let errorMessage = '이미지 합성 중 오류가 발생했습니다.';
+        if (error instanceof Error) {
+            if (error.message.includes('Unauthorized')) {
+                errorMessage = 'Replicate API 토큰이 유효하지 않습니다.';
+            } else if (error.message.includes('rate limit')) {
+                errorMessage = 'API 사용량 한도를 초과했습니다. 잠시 후 다시 시도해주세요.';
+            } else {
+                errorMessage = error.message;
+            }
+        }
+
         return NextResponse.json(
             {
                 success: false,
-                error: error instanceof Error ? error.message : '이미지 합성 중 오류가 발생했습니다.'
+                error: errorMessage
             },
             { status: 500 }
         );
-    }
-}
-
-/**
- * public 폴더의 이미지를 Base64로 변환
- */
-async function fetchImageAsBase64(imageUrl: string): Promise<string> {
-    try {
-        // Next.js에서는 public 폴더가 루트이므로, 전체 URL 생성
-        const fullUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${imageUrl}`;
-
-        const response = await fetch(fullUrl);
-        if (!response.ok) {
-            throw new Error('예시 이미지를 가져올 수 없습니다.');
-        }
-
-        const arrayBuffer = await response.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString('base64');
-        return `data:image/png;base64,${base64}`;
-    } catch (error) {
-        console.error('[fetchImageAsBase64] 에러:', error);
-        throw error;
     }
 }
