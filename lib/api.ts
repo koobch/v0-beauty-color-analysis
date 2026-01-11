@@ -63,7 +63,7 @@ export async function analyzeImage(
                     timestamp: new Date().toISOString(),
                 }),
             },
-            30000 // 30초 타임아웃
+            120000 // 120초 타임아웃
         );
 
         if (!response.ok) {
