@@ -29,15 +29,48 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log('[Compose API] Replicate Face Swap 시작');
+        console.log('[Compose API] 예시 이미지 URL:', exampleImageUrl);
 
-        // 3. 예시 이미지 URL을 절대 경로로 변환
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const fullExampleImageUrl = exampleImageUrl.startsWith('http')
-            ? exampleImageUrl
-            : `${baseUrl}${exampleImageUrl}`;
+        // 3-1. 예시 이미지를 Base64로 변환 (Replicate는 localhost 접근불가)
+        let exampleImageBase64: string;
 
-        console.log('[Compose API] 예시 이미지 URL:', fullExampleImageUrl);
+        if (exampleImageUrl.startsWith('http')) {
+            // 이미 절대 URL이면 그대로 사용 (production 환경)
+            exampleImageBase64 = exampleImageUrl;
+        } else {
+            // 상대 경로면 파일을 읽어서 Base64로 변환 (development 환경)
+            try {
+                const path = await import('path');
+                const fs = await import('fs/promises');
+
+                // public 폴더의 파일 경로 생성
+                const filePath = path.join(process.cwd(), 'public', exampleImageUrl);
+                console.log('[Compose API] 파일 경로:', filePath);
+
+                // 파일 읽기
+                const fileBuffer = await fs.readFile(filePath);
+
+                // MIME 타입 결정 (확장자 기반)
+                const ext = path.extname(filePath).toLowerCase();
+                const mimeTypes: Record<string, string> = {
+                    '.png': 'image/png',
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.webp': 'image/webp',
+                };
+                const mimeType = mimeTypes[ext] || 'image/png';
+
+                // Base64로 인코딩
+                exampleImageBase64 = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+                console.log('[Compose API] 예시 이미지를 Base64로 변환 완료');
+            } catch (fileError) {
+                console.error('[Compose API] 예시 이미지 파일 읽기 실패:', fileError);
+                return NextResponse.json(
+                    { error: '예시 이미지 파일을 찾을 수 없습니다.' },
+                    { status: 404 }
+                );
+            }
+        }
 
         // 4. Replicate 클라이언트 초기화
         const replicate = new Replicate({
@@ -45,13 +78,13 @@ export async function POST(request: NextRequest) {
         });
 
         // 5. Face Swap 모델 실행
-        // 검증된 공개 모델: lucataco/faceswap 또는 omniedgeio/face-swap
+        // 공개 모델: cdingram/face-swap (약 10초 소요, $0.014/실행)
         const output = await replicate.run(
-            "lucataco/faceswap:9a4863ba4585fa16fa35c4dacf2d0633308bb2f2a6101ea259190c123e83d17d",
+            "cdingram/face-swap:d1d6ea8c8be89d664a07a457526f7128109dee7030fdac424788d762c71ed111",
             {
                 input: {
-                    input_image: userImage, // 사용자 얼굴 (Base64)
-                    swap_image: fullExampleImageUrl, // 예시 이미지 (URL 또는 Base64)
+                    input_image: exampleImageBase64, // 예시 이미지 (Base64)
+                    swap_image: userImage, // 사용자 얼굴 (교체할 얼굴 - Base64)
                 }
             }
         );
