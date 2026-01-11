@@ -89,14 +89,47 @@ export async function POST(request: NextRequest) {
             }
         );
 
-        // 6. 결과 처리 (lucataco/faceswap는 단일 URL 반환)
-        const composedImageUrl = output as unknown as string;
+        // 6. 결과 처리 (cdingram/face-swap는 FileOutput 객체 반환)
+        console.log('[Compose API] Replicate 응답 타입:', typeof output);
+        console.log('[Compose API] Replicate 응답:', output);
 
-        if (!composedImageUrl) {
+        let composedImageUrl: string;
+
+        // cdingram/face-swap는 FileOutput 객체를 반환하며 .url() 메서드 제공
+        if (typeof output === 'object' && output !== null && typeof (output as any).url === 'function') {
+            const urlResult = await (output as any).url();
+            console.log('[Compose API] FileOutput.url() 반환값:', urlResult);
+
+            // .url()이 URL 객체를 반환하는 경우 문자열로 변환
+            if (typeof urlResult === 'object' && urlResult !== null && 'href' in urlResult) {
+                composedImageUrl = urlResult.href;
+            } else if (typeof urlResult === 'string') {
+                composedImageUrl = urlResult;
+            } else {
+                composedImageUrl = String(urlResult);
+            }
+            console.log('[Compose API] 최종 URL 문자열:', composedImageUrl);
+        }
+        // output이 배열인 경우
+        else if (Array.isArray(output)) {
+            composedImageUrl = output[0];
+        }
+        // output이 직접 문자열인 경우
+        else if (typeof output === 'string') {
+            composedImageUrl = output;
+        }
+        // 그 외의 경우
+        else {
+            console.error('[Compose API] 예상치 못한 output 형태:', output);
+            throw new Error('합성된 이미지 URL을 추출할 수 없습니다.');
+        }
+
+        if (!composedImageUrl || typeof composedImageUrl !== 'string') {
+            console.error('[Compose API] composedImageUrl이 문자열이 아님:', typeof composedImageUrl, composedImageUrl);
             throw new Error('합성된 이미지를 생성하지 못했습니다.');
         }
 
-        console.log('[Compose API] Face Swap 성공:', composedImageUrl);
+        console.log('[Compose API] Face Swap 성공! 최종 URL:', composedImageUrl);
 
         // 7. 합성 결과 반환
         return NextResponse.json({
