@@ -66,11 +66,11 @@ export default function ComposeModal({ isOpen, onClose, composedImageUrl, isLoad
                 {isLoading && (
                     <div className="flex flex-col items-center justify-center py-20 px-6">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-neutral-200 border-t-neutral-800 mb-4" />
-                        <h3 className="text-base font-normal text-neutral-800 mb-2">얼굴 합성 중...</h3>
+                        <h3 className="text-base font-normal text-neutral-800 mb-2">AI 스타일링 생성 중...</h3>
                         <p className="text-sm text-neutral-500 font-light text-center">
-                            AI가 당신의 얼굴을 예시 스타일에 정확히 합성하고 있습니다.
+                            AI가 당신의 퍼스널 컬러에 맞춘 스타일링 이미지를 생성하고 있습니다.
                             <br />
-                            잠시만 기다려주세요 (약 15-20초)
+                            잠시만 기다려주세요 (약 20-30초)
                         </p>
                     </div>
                 )}
@@ -90,10 +90,10 @@ export default function ComposeModal({ isOpen, onClose, composedImageUrl, isLoad
                         {/* 하단 정보 */}
                         <div className="p-6 text-center">
                             <h3 className="text-lg font-normal text-neutral-800 mb-2">
-                                ✨ 합성 완료!
+                                ✨ 생성 완료!
                             </h3>
                             <p className="text-sm text-neutral-500 font-light mb-4">
-                                당신의 퍼스널 컬러 스타일이 적용되었습니다
+                                당신의 퍼스널 컬러에 맞춘 AI 스타일링 이미지입니다
                             </p>
 
                             {/* 다운로드 버튼 */}

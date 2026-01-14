@@ -104,15 +104,24 @@ export interface ComposeResult {
     error?: string;
 }
 
+export interface ColorAnalysisData {
+    type: string;
+    name: string;
+    makeup_colors: Array<{ color: string; hex: string }>;
+    fashion_colors: Array<{ color: string; hex: string }>;
+    makeup_guide: string;
+    fashion_guide: string;
+}
+
 /**
- * 이미지 합성 API 호출
+ * AI 스타일링 이미지 생성 API 호출
  * @param userImageBase64 - 사용자 이미지 (Base64)
- * @param exampleImageUrl - 예시 이미지 URL
- * @returns 합성된 이미지 URL
+ * @param analysisData - 퍼스널 컬러 분석 결과
+ * @returns AI가 생성한 스타일링 이미지 URL
  */
 export async function composeImage(
     userImageBase64: string,
-    exampleImageUrl: string
+    analysisData: ColorAnalysisData
 ): Promise<ComposeResult> {
     try {
         const response = await fetchWithTimeout(
@@ -124,15 +133,20 @@ export async function composeImage(
                 },
                 body: JSON.stringify({
                     userImage: userImageBase64,
-                    exampleImageUrl: exampleImageUrl
+                    colorType: analysisData.type,
+                    colorName: analysisData.name,
+                    makeupColors: analysisData.makeup_colors,
+                    fashionColors: analysisData.fashion_colors,
+                    makeupGuide: analysisData.makeup_guide,
+                    fashionGuide: analysisData.fashion_guide,
                 }),
             },
-            60000 // 60초 타임아웃
+            120000 // 120초 타임아웃 (AI 이미지 생성은 시간이 더 걸림)
         );
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || '합성 실패');
+            throw new Error(errorData.error || 'AI 스타일링 실패');
         }
 
         const data = await response.json();
@@ -141,12 +155,12 @@ export async function composeImage(
             composedImageUrl: data.composedImageUrl
         };
     } catch (error) {
-        console.error('[API] 이미지 합성 실패:', error);
+        console.error('[API] AI 스타일링 실패:', error);
 
-        let errorMessage = '이미지 합성에 실패했습니다.';
+        let errorMessage = 'AI 스타일링 이미지 생성에 실패했습니다.';
         if (error instanceof Error) {
             if (error.message.includes('요청 시간이 초과')) {
-                errorMessage = '합성 시간이 초과되었습니다. 다시 시도해주세요.';
+                errorMessage = '이미지 생성 시간이 초과되었습니다. 다시 시도해주세요.';
             } else if (error.message.includes('Failed to fetch')) {
                 errorMessage = '네트워크 연결을 확인해주세요.';
             } else {

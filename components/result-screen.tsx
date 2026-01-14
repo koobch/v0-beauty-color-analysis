@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import AdBanner from "@/components/AdBanner"
 import ComposeModal from "@/components/compose-modal"
-import { AnalysisResult, EXAMPLE_IMAGES, ExampleImage } from "@/lib/constants"
+import { AnalysisResult } from "@/lib/constants"
 import { composeImage } from "@/lib/api"
 
 interface ResultScreenProps {
@@ -21,11 +21,8 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
   // 결과 데이터가 없으면 아무것도 렌더링하지 않음 (상위에서 로딩 처리)
   if (!result) return null;
 
-  // 현재 퍼스널 컬러 타입에 맞는 예시 이미지 가져오기
-  const exampleImages: ExampleImage[] = EXAMPLE_IMAGES[result.type] || EXAMPLE_IMAGES["default"];
-
-  // 이미지 합성 핸들러
-  const handleComposeClick = async (exampleImageUrl: string, exampleDescription: string) => {
+  // AI 스타일링 이미지 생성 핸들러
+  const handleComposeClick = async () => {
     if (!capturedImage) {
       alert('사용자 이미지가 없습니다. 다시 촬영해주세요.');
       return;
@@ -33,9 +30,9 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
 
     // 🔥 확인 다이얼로그 추가
     const confirmed = confirm(
-      `"${exampleDescription}" 스타일을 당신의 얼굴에 합성하시겠습니까?\n\n` +
-      `⏱️ 약 15-20초 소요됩니다.\n` +
-      `💡 AI가 당신의 얼굴을 예시 이미지의 스타일로 변환합니다.\n\n` +
+      `당신의 퍼스널 컬러 "${result.name}"에 맞춘 AI 스타일링 이미지를 생성하시겠습니까?\n\n` +
+      `⏱️ 약 20-30초 소요됩니다.\n` +
+      `💡 AI가 당신의 사진과 퍼스널 컬러 분석 결과를 기반으로 스타일링 이미지를 생성합니다.\n\n` +
       `계속하시겠습니까?`
     );
 
@@ -48,20 +45,27 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
       setIsModalOpen(true) // 모달 열기 (로딩 상태)
       setComposedImageUrl(null)
 
-      console.log('[ResultScreen] Replicate Face Swap 시작:', exampleImageUrl);
+      console.log('[ResultScreen] AI 스타일링 이미지 생성 시작:', result.type);
 
-      const result = await composeImage(capturedImage, exampleImageUrl);
+      const composeResult = await composeImage(capturedImage, {
+        type: result.type,
+        name: result.name,
+        makeup_colors: result.makeup_colors,
+        fashion_colors: result.fashion_colors,
+        makeup_guide: result.makeup_guide,
+        fashion_guide: result.fashion_guide,
+      });
 
-      if (result.success && result.composedImageUrl) {
-        setComposedImageUrl(result.composedImageUrl)
-        console.log('[ResultScreen] 합성 성공');
+      if (composeResult.success && composeResult.composedImageUrl) {
+        setComposedImageUrl(composeResult.composedImageUrl)
+        console.log('[ResultScreen] AI 스타일링 성공');
       } else {
-        alert(`합성 실패: ${result.error || '알 수 없는 오류'}`);
+        alert(`AI 스타일링 실패: ${composeResult.error || '알 수 없는 오류'}`);
         setIsModalOpen(false) // 실패 시 모달 닫기
       }
     } catch (error) {
-      console.error('[ResultScreen] 합성 중 오류:', error);
-      alert('이미지 합성 중 오류가 발생했습니다.');
+      console.error('[ResultScreen] AI 스타일링 중 오류:', error);
+      alert('AI 스타일링 중 오류가 발생했습니다.');
       setIsModalOpen(false)
     } finally {
       setIsComposing(false)
@@ -154,47 +158,40 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
           </p>
         </div>
 
-        {/* 🔥 NEW: Try On Example Styles Section */}
+        {/* 🔥 NEW: AI Styling Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-normal text-neutral-800">Try On Example Styles</h2>
+            <h2 className="text-base font-normal text-neutral-800">AI Styling Preview</h2>
             <span className="inline-block bg-[#D4A5A5] text-white text-[10px] px-2 py-0.5 rounded-full">
               AI
             </span>
           </div>
-          <p className="text-xs text-neutral-500 font-light mb-3">
-            내 얼굴에 {result.name} 스타일을 입혀보세요
+          <p className="text-xs text-neutral-500 font-light mb-4">
+            내 퍼스널 컬러에 맞춘 스타일링 이미지를 AI로 생성해보세요
           </p>
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {exampleImages.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleComposeClick(img.url, img.description)}
-                disabled={isComposing}
-                className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 group disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <img
-                  src={img.url}
-                  alt={img.description}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 text-white text-sm font-normal bg-neutral-800/80 px-3 py-1.5 rounded-full transition-opacity">
-                    합성하기
-                  </span>
-                </div>
-                <div className="absolute bottom-2 left-2 right-2">
-                  <span className="text-[10px] text-white bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full block text-center">
-                    {img.description}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={handleComposeClick}
+            disabled={isComposing}
+            className="w-full bg-gradient-to-r from-[#D4A5A5] to-[#C89595] hover:from-[#C89595] hover:to-[#B88585] text-white rounded-2xl py-4 px-6 text-sm font-normal shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isComposing ? (
+              <>
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                <span>AI 스타일링 생성 중...</span>
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12a9 9 0 11-6.219-8.56" />
+                </svg>
+                <span>내 스타일링 이미지 생성하기</span>
+              </>
+            )}
+          </button>
 
-          <p className="text-[11px] text-neutral-400 font-light text-center">
-            💡 AI가 당신의 얼굴에 예시 스타일을 합성합니다 (약 10-15초 소요)
+          <p className="text-[11px] text-neutral-400 font-light text-center mt-3">
+            💡 퍼스널 컬러 기반으로 맞춤 스타일링 이미지를 생성합니다 (약 20-30초 소요)
           </p>
         </div>
 

@@ -69,8 +69,12 @@ export async function POST(request: NextRequest) {
                 const textContent = dataArray[0]?.output?.[0]?.content?.[0]?.text;
 
                 if (textContent) {
-                    // 3단계: 문자열로 된 JSON을 진짜 객체로 변환
-                    parsedAiResult = JSON.parse(textContent);
+                    // 3단계: text가 문자열이면 JSON 파싱, 이미 객체면 그대로 사용
+                    if (typeof textContent === 'string') {
+                        parsedAiResult = JSON.parse(textContent);
+                    } else if (typeof textContent === 'object') {
+                        parsedAiResult = textContent;
+                    }
                 }
             }
 
