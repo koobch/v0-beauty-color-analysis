@@ -60,31 +60,52 @@ export async function POST(request: NextRequest) {
             throw new Error(`n8n 웹훅 호출 실패: ${webhookResponse.status} ${webhookResponse.statusText}`);
         }
 
-        // 4. n8n 응답 파싱
-        const responseData = await webhookResponse.json();
-        console.log('[Compose API] n8n 응답 수신');
+        // 4. n8n 응답 파싱 - 먼저 텍스트로 받기
+        const responseText = await webhookResponse.text();
+        console.log('[Compose API] n8n 응답 수신 (텍스트 길이):', responseText.length);
+
+        // 빈 응답 체크
+        if (!responseText || responseText.trim() === '') {
+            throw new Error('n8n에서 빈 응답을 반환했습니다.');
+        }
+
+        // JSON 파싱
+        let responseData;
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('[Compose API] JSON 파싱 실패:', parseError);
+            console.error('[Compose API] 응답 내용 (처음 500자):', responseText.substring(0, 500));
+            throw new Error('n8n 응답을 JSON으로 파싱할 수 없습니다.');
+        }
 
         // n8n은 배열로 반환하며, 첫 번째 요소에 결과가 있음
         if (!Array.isArray(responseData) || responseData.length === 0) {
+            console.error('[Compose API] 응답 형식 오류:', responseData);
             throw new Error('n8n 응답 형식이 올바르지 않습니다.');
         }
 
         const result = responseData[0];
 
-        // 5. 상태 확인
-        if (result.status !== 'succeeded') {
-            throw new Error(result.error || 'AI 스타일링 이미지 생성에 실패했습니다.');
-        }
+        // 5. 이미지 추출 (n8n이 styling_image 필드에 base64로 전달)
+        const stylingImage = result.styling_image;
 
-        // 6. 이미지 URL 추출
-        const composedImageUrl = result.output;
-
-        if (!composedImageUrl || typeof composedImageUrl !== 'string') {
-            console.error('[Compose API] composedImageUrl이 문자열이 아님:', typeof composedImageUrl, composedImageUrl);
+        if (!stylingImage || typeof stylingImage !== 'string') {
+            console.error('[Compose API] styling_image가 없거나 문자열이 아님:', typeof stylingImage);
+            console.error('[Compose API] 전체 응답:', result);
             throw new Error('스타일링 이미지를 생성하지 못했습니다.');
         }
 
-        console.log('[Compose API] AI 스타일링 성공! URL:', composedImageUrl);
+        // 6. base64를 data URL로 변환 (이미 data:image... 형식이면 그대로, 아니면 추가)
+        let composedImageUrl;
+        if (stylingImage.startsWith('data:image')) {
+            composedImageUrl = stylingImage;
+        } else {
+            // base64 문자열만 있는 경우 data URL로 변환
+            composedImageUrl = `data:image/png;base64,${stylingImage}`;
+        }
+
+        console.log('[Compose API] AI 스타일링 성공! (base64 길이):', stylingImage.length);
 
         // 7. 생성 결과 반환
         return NextResponse.json({
