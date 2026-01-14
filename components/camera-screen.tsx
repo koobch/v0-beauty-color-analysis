@@ -6,10 +6,9 @@ import { captureImageFromVideo } from "@/lib/image-utils"
 
 interface CameraScreenProps {
   onCapture: (imageBase64: string) => void
-  onBack: () => void
 }
 
-export default function CameraScreen({ onCapture, onBack }: CameraScreenProps) {
+export default function CameraScreen({ onCapture }: CameraScreenProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
 
@@ -57,14 +56,6 @@ export default function CameraScreen({ onCapture, onBack }: CameraScreenProps) {
     }
   }
 
-  const handleBack = () => {
-    // 카메라 스트림 중지
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop())
-    }
-    onBack()
-  }
-
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center relative">
       {/* 비디오 스트림 (거울 모드) */}
@@ -90,28 +81,6 @@ export default function CameraScreen({ onCapture, onBack }: CameraScreenProps) {
             strokeDasharray="2,1"
           />
         </svg>
-      </div>
-
-      {/* 뒤로가기 버튼 */}
-      <div className="absolute top-6 left-6 z-10">
-        <button
-          onClick={handleBack}
-          className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
       </div>
 
       {/* 안내 메시지 */}

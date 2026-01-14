@@ -2,16 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * 이미지 분석 API Route
- * 클라이언트로부터 이미지를 받아 n8n 웹훅으로 전달하고,
- * 복잡한 n8n 응답 구조를 파싱하여 프론트엔드에 전달
+ * 클라이언트로부터 이미지를 받아 n8n 웹훅으로 전달
  */
 export async function POST(request: NextRequest) {
     try {
-        // 1. 요청 본문 파싱
+        // 요청 본문 파싱
         const body = await request.json();
         const { image, userId, timestamp } = body;
 
-        // 2. 필수 필드 검증
+        // 필수 필드 검증
         if (!image || !userId) {
             return NextResponse.json(
                 { error: '이미지와 사용자 ID는 필수입니다.' },
@@ -19,19 +18,30 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 3. 환경변수 체크
+        // 환경변수에서 n8n 웹훅 URL 가져오기
         const webhookUrl = process.env.N8N_WEBHOOK_URL;
+
+        // 디버깅: 환경변수 로딩 확인
+        console.log('[API] 환경변수 체크:', {
+            hasWebhookUrl: !!webhookUrl,
+            urlLength: webhookUrl?.length || 0,
+        });
+
         if (!webhookUrl) {
             console.error('[API] N8N_WEBHOOK_URL 환경변수가 설정되지 않았습니다.');
             return NextResponse.json(
-                { error: '서버 설정 오류가 발생했습니다.' },
+                { error: '서버 설정 오류가 발생했습니다. 개발 서버를 재시작해주세요.' },
                 { status: 500 }
             );
         }
 
-        console.log('[API] n8n 웹훅 호출 시작:', { userId, urlLength: webhookUrl.length });
+        // n8n 웹훅 호출
+        console.log('[API] n8n 웹훅 호출 시작:', {
+            url: webhookUrl,
+            userId: userId,
+            imageSize: image.length,
+        });
 
-        // 4. n8n 웹훅 호출
         const webhookResponse = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
@@ -44,97 +54,32 @@ export async function POST(request: NextRequest) {
             }),
         });
 
-        if (!webhookResponse.ok) {
-            const errorText = await webhookResponse.text();
-            throw new Error(`n8n 호출 실패: ${webhookResponse.status} ${errorText}`);
-        }
-
-        // 5. n8n 응답 받기 - 먼저 텍스트로 받기
-        const responseText = await webhookResponse.text();
-        console.log('[API] n8n 응답 수신 (텍스트 길이):', responseText.length);
-
-        // 빈 응답 체크
-        if (!responseText || responseText.trim() === '') {
-            throw new Error('n8n에서 빈 응답을 반환했습니다.');
-        }
-
-        // JSON 파싱
-        let rawResponse;
-        try {
-            rawResponse = JSON.parse(responseText);
-            console.log('[API] n8n Raw Response 수신 완료');
-        } catch (parseError) {
-            console.error('[API] JSON 파싱 실패:', parseError);
-            console.error('[API] 응답 내용 (처음 500자):', responseText.substring(0, 500));
-            throw new Error('n8n 응답을 JSON으로 파싱할 수 없습니다.');
-        }
-
-        // 6. 🔥 [핵심] 복잡한 중첩 구조 파싱 로직
-        let parsedAiResult = null;
-
-        try {
-            // 보내주신 구조: { "success": true, "data": [ { "output": ... } ] } 
-            // 혹은 n8n이 바로 [ { "output": ... } ] 를 줄 수도 있음. 두 경우 모두 대비.
-
-            // 1단계: 배열 찾기
-            const dataArray = Array.isArray(rawResponse) ? rawResponse : rawResponse.data;
-
-            if (Array.isArray(dataArray) && dataArray.length > 0) {
-                // 2단계: output -> content -> text 경로 탐색
-                // 구조: data[0].output[0].content[0].text
-                const textContent = dataArray[0]?.output?.[0]?.content?.[0]?.text;
-
-                if (textContent) {
-                    // 3단계: text가 문자열이면 JSON 파싱, 이미 객체면 그대로 사용
-                    if (typeof textContent === 'string') {
-                        parsedAiResult = JSON.parse(textContent);
-                    } else if (typeof textContent === 'object') {
-                        parsedAiResult = textContent;
-                    }
-                }
-            }
-
-            if (!parsedAiResult) {
-                console.error('[API] 파싱 실패: 원하는 데이터 경로를 찾지 못했습니다.', JSON.stringify(rawResponse).substring(0, 200));
-                throw new Error('AI 분석 결과 형식이 올바르지 않습니다.');
-            }
-
-            // 7. 🔥 [안전장치] 프론트엔드 호환성 처리 (String -> Object 변환)
-            // AI가 컬러를 ["Pink"] 처럼 문자열 배열로 줬을 경우, [{color:"Pink", hex:"#ccc"}]로 바꿔야 프론트가 안 깨짐
-
-            const normalizeColors = (colors: any[]) => {
-                if (!Array.isArray(colors)) return [];
-                return colors.map(c => {
-                    if (typeof c === 'string') {
-                        // 문자열이면 객체로 변환 (Hex는 임시값)
-                        return { color: c, hex: '#E0E0E0' };
-                    }
-                    return c; // 이미 객체라면 그대로 둠
-                });
-            };
-
-            parsedAiResult.makeup_colors = normalizeColors(parsedAiResult.makeup_colors);
-            parsedAiResult.fashion_colors = normalizeColors(parsedAiResult.fashion_colors);
-
-        } catch (parseError) {
-            console.error('[API] 데이터 파싱 중 에러:', parseError);
-            throw new Error('AI 응답 데이터를 처리하는 중 오류가 발생했습니다.');
-        }
-
-        console.log('[API] 최종 파싱 성공:', parsedAiResult.type);
-
-        // 8. 클라이언트에 최종 가공된 데이터 반환
-        return NextResponse.json({
-            success: true,
-            data: parsedAiResult, // 깔끔해진 JSON 객체
+        console.log('[API] n8n 웹훅 응답:', {
+            status: webhookResponse.status,
+            statusText: webhookResponse.statusText,
+            ok: webhookResponse.ok,
         });
 
+        if (!webhookResponse.ok) {
+            const errorText = await webhookResponse.text().catch(() => 'No error text');
+            console.error('[API] n8n 웹훅 에러 응답:', errorText);
+            throw new Error(`n8n 웹훅 호출 실패: ${webhookResponse.status} - ${webhookResponse.statusText}`);
+        }
+
+        // n8n 응답 받기
+        const webhookData = await webhookResponse.json();
+
+        // 클라이언트에 응답 반환
+        return NextResponse.json({
+            success: true,
+            data: webhookData,
+        });
     } catch (error) {
-        console.error('[API] 처리 중 오류:', error);
+        console.error('[API] 이미지 분석 오류:', error);
         return NextResponse.json(
             {
                 success: false,
-                error: error instanceof Error ? error.message : '알 수 없는 오류',
+                error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
             },
             { status: 500 }
         );
