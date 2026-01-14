@@ -73,7 +73,7 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F7] flex flex-col py-8 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#E8E6E3] flex flex-col py-8 px-6">
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
         {/* 광고 배너 */}
         <AdBanner
@@ -82,98 +82,99 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
           className="mb-6"
         />
 
-        {/* Title Section: API에서 받은 name과 subtitle 사용 */}
-        <div className="text-center mb-6">
-          <h1 className="text-[28px] font-light text-neutral-800 mb-2 tracking-tight">
+        {/* Title Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-[32px] font-suit font-medium text-neutral-800 mb-2 tracking-tight bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
             {result.name}
           </h1>
-          <p className="text-sm text-neutral-500 font-light">
+          <p className="text-sm text-neutral-600 font-light">
             {result.subtitle}
           </p>
         </div>
 
-        {/* Commentary Section: Eddy's Analysis */}
-        <div className="mb-6">
-          <div className="inline-block bg-[#E8E3DD] px-4 py-1.5 rounded-full mb-3">
-            <span className="text-xs font-normal text-neutral-700">Eddy's Analysis</span>
+
+        {/* Eddy's Analysis Card */}
+        <div className="mb-6 bg-white/60 backdrop-blur-md rounded-2xl p-5 border border-neutral-200/50 shadow-sm">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#E8E3DD] to-[#DDD8D2] px-4 py-2 rounded-full mb-4">
+            <span className="text-xs font-medium text-neutral-700">💬 Eddy's Analysis</span>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {(result.reasons || []).map((reason, index) => (
-              <p key={index} className="text-[13px] text-neutral-600 font-light leading-relaxed">
-                • {reason}
-              </p>
+              <div key={index} className="flex items-start gap-2">
+                <span className="text-[#D4A5A5] mt-1">•</span>
+                <p className="text-[13px] text-neutral-700 font-light leading-relaxed flex-1">
+                  {reason}
+                </p>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Makeup Color Card Section */}
-        <div className="mb-5">
-          <h2 className="text-base font-normal text-neutral-800 mb-3">Makeup Color Card</h2>
-          <div className="flex gap-3 justify-between mb-3 overflow-x-auto pb-2 scrollbar-hide">
-            {result.makeup_colors.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => onColorSelect(item.color, item.hex)}
-                className="flex flex-col items-center group min-w-[56px]"
-              >
-                {/* API에서 준 Hex 코드로 배경색 지정 */}
-                <div
-                  className="w-14 h-14 rounded-full shadow-sm group-hover:scale-110 transition-transform duration-300 border border-neutral-100"
-                  style={{ backgroundColor: item.hex }}
-                />
-                <span className="text-[10px] text-neutral-600 mt-1.5 font-light text-center leading-tight truncate w-full px-1">
-                  {item.color}
-                </span>
-              </button>
-            ))}
+        {/* Color Cards - Bento Grid Style */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {/* Makeup Colors Card */}
+          <div className="col-span-2 bg-white rounded-2xl p-5 border border-neutral-200">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">💄</span>
+              <h2 className="text-base font-suit font-medium text-neutral-800">메이크업</h2>
+            </div>
+            <div className="grid grid-cols-4 gap-3 mb-3">
+              {result.makeup_colors.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => onColorSelect(item.color, item.hex)}
+                  className="flex flex-col items-center group"
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl group-hover:scale-105 transition-transform duration-200 border border-neutral-200"
+                    style={{ backgroundColor: item.hex }}
+                  />
+                  <span className="text-[9px] text-neutral-600 mt-1.5 font-serif italic text-center leading-tight truncate w-full px-1">
+                    {item.color}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-neutral-600 font-light leading-relaxed">
+              {result.makeup_guide}
+            </p>
           </div>
-          <p className="text-[11px] text-neutral-500 font-light leading-relaxed">
-            {result.makeup_guide}
-          </p>
+
+          {/* Fashion Colors Card */}
+          <div className="col-span-2 bg-white rounded-2xl p-5 border border-neutral-200">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">👗</span>
+              <h2 className="text-base font-suit font-medium text-neutral-800">패션</h2>
+            </div>
+            <div className="grid grid-cols-4 gap-3 mb-3">
+              {result.fashion_colors.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => onColorSelect(item.color, item.hex)}
+                  className="flex flex-col items-center group"
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl group-hover:scale-105 transition-transform duration-200 border border-neutral-200"
+                    style={{ backgroundColor: item.hex }}
+                  />
+                  <span className="text-[9px] text-neutral-600 mt-1.5 font-serif italic text-center leading-tight truncate w-full px-1">
+                    {item.color}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-neutral-600 font-light leading-relaxed">
+              {result.fashion_guide}
+            </p>
+          </div>
         </div>
 
-        {/* Fashion Color Card Section */}
-        <div className="mb-6">
-          <h2 className="text-base font-normal text-neutral-800 mb-3">Fashion Color Card</h2>
-          <div className="flex gap-3 justify-between mb-3 overflow-x-auto pb-2 scrollbar-hide">
-            {result.fashion_colors.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => onColorSelect(item.color, item.hex)}
-                className="flex flex-col items-center group min-w-[56px]"
-              >
-                {/* API에서 준 Hex 코드로 배경색 지정 */}
-                <div
-                  className="w-14 h-14 rounded-full shadow-sm group-hover:scale-110 transition-transform duration-300 border border-neutral-100"
-                  style={{ backgroundColor: item.hex }}
-                />
-                <span className="text-[10px] text-neutral-600 mt-1.5 font-light text-center leading-tight truncate w-full px-1">
-                  {item.color}
-                </span>
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-neutral-500 font-light leading-relaxed">
-            {result.fashion_guide}
-          </p>
-        </div>
-
-        {/* 🔥 NEW: AI Styling Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-normal text-neutral-800">AI Styling Preview</h2>
-            <span className="inline-block bg-[#D4A5A5] text-white text-[10px] px-2 py-0.5 rounded-full">
-              AI
-            </span>
-          </div>
-          <p className="text-xs text-neutral-500 font-light mb-4">
-            내 퍼스널 컬러에 맞춘 스타일링 이미지를 AI로 생성해보세요
-          </p>
-
+        {/* AI Styling Button */}
+        <div className="mb-4 bg-gradient-to-r from-[#D4A5A5]/10 to-[#C89595]/10 rounded-2xl p-4 border border-[#D4A5A5]/20">
           <button
             onClick={handleComposeClick}
             disabled={isComposing}
-            className="w-full bg-gradient-to-r from-[#D4A5A5] to-[#C89595] hover:from-[#C89595] hover:to-[#B88585] text-white rounded-2xl py-4 px-6 text-sm font-normal shadow-md transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-[#D4A5A5] to-[#C89595] hover:from-[#C89595] hover:to-[#B88585] text-white rounded-xl py-4 text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isComposing ? (
               <>
@@ -189,22 +190,21 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
               </>
             )}
           </button>
-
-          <p className="text-[11px] text-neutral-400 font-light text-center mt-3">
-            💡 퍼스널 컬러 기반으로 맞춤 스타일링 이미지를 생성합니다 (약 20-30초 소요)
+          <p className="text-[10px] text-center text-neutral-500 mt-2">
+            💡 AI가 퍼스널 컬러 기반으로 맞춤 스타일링을 생성해요 (20-30초)
           </p>
         </div>
 
         {/* Action Button Section */}
-        <div className="flex gap-2.5 mt-auto">
-          <Button className="flex-1 bg-neutral-800 hover:bg-neutral-900 text-white rounded-full py-5 text-[13px] font-normal shadow-sm">
-            Save Results
+        <div className="flex gap-3 mt-auto">
+          <Button className="flex-1 bg-gradient-to-r from-neutral-800 to-neutral-700 hover:from-neutral-900 hover:to-neutral-800 text-white rounded-2xl py-5 text-[13px] font-medium shadow-lg hover:shadow-xl transition-all">
+            결과 저장
           </Button>
           <Button
             variant="outline"
-            className="flex-1 border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 rounded-full py-5 text-[13px] font-normal"
+            className="flex-1 border-2 border-neutral-300 bg-white/80 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-2xl py-5 text-[13px] font-medium shadow-md hover:shadow-lg transition-all"
           >
-            Share with Friends
+            공유
           </Button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 
 // 8 palette combinations that will rotate
 const COLOR_PALETTES = [
-  ["#FFB3BA", "#FFDFBA", "#FFFFBA", "#BAFFC9", "#BAE1FF"],
+  ["#FFB3BA", "#FFDFBA", "#FFFFBA", "#BAFFC9", "##BAE1FF"],
   ["#E8C4C4", "#F4D8CD", "#FFF5E1", "#D4E8E0", "#D4E4F7"],
   ["#FFE5E5", "#FFD6E8", "#FFFACD", "#E0F5E9", "#E8F4F8"],
   ["#FFDFD3", "#FFE4D6", "#FFF8DC", "#D8E9E4", "#DDE7F2"],
@@ -33,44 +33,64 @@ export default function LandingScreen({ onStart }: LandingScreenProps) {
   const currentPalette = COLOR_PALETTES[currentPaletteIndex]
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-[#FAF9F7]">
-      <div className="flex flex-col items-center text-center max-w-md w-full">
-        {/* Hero Text Block */}
-        <h1 className="text-[32px] leading-tight font-light tracking-tight text-neutral-800 mb-3">
-          What colors make my face
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-gradient-to-br from-[#FAF9F7] via-[#F5F1EE] to-[#E8E3DD] relative overflow-hidden">
+      {/* 배경 장식 요소 */}
+      <div className="absolute top-20 right-10 w-64 h-64 bg-gradient-to-br from-[#D4A5A5]/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 left-10 w-48 h-48 bg-gradient-to-tr from-[#C89595]/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+      <div className="flex flex-col items-center text-center max-w-md w-full relative z-10">
+
+        {/* Hero Text Block - 더 크게 */}
+        <h1 className="text-[42px] leading-[1.15] font-suit font-bold tracking-tight bg-gradient-to-r from-neutral-800 via-neutral-700 to-neutral-600 bg-clip-text text-transparent mb-5">
+          내 얼굴이 제일 예뻐
           <br />
-          look most beautiful?
+          보이는 컬러는?
         </h1>
 
         {/* Subtext */}
-        <div className="space-y-1 mb-8">
-          <p className="text-base text-neutral-500 font-light">No expensive diagnosis needed,</p>
-          <p className="text-base text-neutral-500 font-light">just one photo is enough!</p>
-        </div>
+        <p className="text-base text-neutral-600 font-light mb-12">
+          비싼 진단이 필요 없어요, 사진 한 장이면 충분해요!
+        </p>
 
         {/* CTA Block */}
         <Button
           onClick={onStart}
-          className="bg-[#D4A5A5] hover:bg-[#C49090] text-white rounded-full px-12 py-6 text-base font-normal shadow-sm transition-all mb-3"
+          className="w-full bg-gradient-to-r from-[#D4A5A5] to-[#C89595] hover:from-[#C89595] hover:to-[#B88585] text-white rounded-full px-12 py-7 text-lg font-medium shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] mb-5"
         >
-          Find My Colors
+          <span className="flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            내 컬러 알아보기
+          </span>
         </Button>
 
-        {/* Trust Caption Block */}
-        <p className="text-xs text-neutral-400 font-light mb-12">📷 Photos are only used for analysis and not stored</p>
+        {/* Trust Badge */}
+        <div className="flex items-center justify-center gap-2 bg-white/60 backdrop-blur-sm rounded-full px-4 py-2.5 border border-neutral-200/50 mb-14">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+          <p className="text-xs text-neutral-600 font-medium">📷 사진은 분석에만 사용되고 저장되지 않아요</p>
+        </div>
 
-        {/* Color Palette Block - positioned higher to relate to content */}
-        <div className="mt-4">
-          <div className="flex gap-2.5 justify-center transition-opacity duration-500">
+        {/* Color Palette - 하단으로 */}
+        <div className="w-full">
+          <div className="flex gap-2.5 justify-center">
             {currentPalette.map((color, index) => (
               <div
                 key={`${currentPaletteIndex}-${index}`}
-                className="w-11 h-11 rounded-full shadow-sm animate-fade-in"
-                style={{ backgroundColor: color }}
+                className="w-11 h-11 rounded-full shadow-md animate-fade-in border-2 border-white"
+                style={{
+                  backgroundColor: color,
+                  animationDelay: `${index * 0.1}s`
+                }}
               />
             ))}
           </div>
         </div>
+
       </div>
     </div>
   )
