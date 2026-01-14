@@ -72,6 +72,31 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
     }
   }
 
+  // 결과 저장 핸들러 (스크린샷 안내)
+  const handleSaveResult = () => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      alert('📱 모바일: 스크린샷 기능으로 저장해주세요!\n• iOS: 전원 + 볼륨 상단 버튼\n• Android: 전원 + 볼륨 하단 버튼');
+    } else {
+      alert('💻 PC: 스크린샷 기능으로 저장해주세요!\n• Windows: Win + Shift + S\n• Mac: Cmd + Shift + 4');
+    }
+  }
+
+  // 공유 핸들러 (링크 복사)
+  const handleShare = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      alert('링크가 복사되었습니다! 친구에게 공유해보세요 📋');
+    } catch (error) {
+      console.error('링크 복사 오류:', error);
+      alert('링크 복사 중 오류가 발생했습니다.');
+    }
+  }
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#E8E6E3] flex flex-col py-8 px-6">
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
@@ -197,10 +222,14 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
 
         {/* Action Button Section */}
         <div className="flex gap-3 mt-auto">
-          <Button className="flex-1 bg-gradient-to-r from-neutral-800 to-neutral-700 hover:from-neutral-900 hover:to-neutral-800 text-white rounded-2xl py-5 text-[13px] font-medium shadow-lg hover:shadow-xl transition-all">
+          <Button
+            onClick={handleSaveResult}
+            className="flex-1 bg-gradient-to-r from-neutral-800 to-neutral-700 hover:from-neutral-900 hover:to-neutral-800 text-white rounded-2xl py-5 text-[13px] font-medium shadow-lg hover:shadow-xl transition-all"
+          >
             결과 저장
           </Button>
           <Button
+            onClick={handleShare}
             variant="outline"
             className="flex-1 border-2 border-neutral-300 bg-white/80 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-2xl py-5 text-[13px] font-medium shadow-md hover:shadow-lg transition-all"
           >

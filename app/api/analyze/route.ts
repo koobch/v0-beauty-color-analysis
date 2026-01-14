@@ -49,9 +49,25 @@ export async function POST(request: NextRequest) {
             throw new Error(`n8n 호출 실패: ${webhookResponse.status} ${errorText}`);
         }
 
-        // 5. n8n 응답 받기 (Raw Data)
-        const rawResponse = await webhookResponse.json();
-        console.log('[API] n8n Raw Response 수신 완료');
+        // 5. n8n 응답 받기 - 먼저 텍스트로 받기
+        const responseText = await webhookResponse.text();
+        console.log('[API] n8n 응답 수신 (텍스트 길이):', responseText.length);
+
+        // 빈 응답 체크
+        if (!responseText || responseText.trim() === '') {
+            throw new Error('n8n에서 빈 응답을 반환했습니다.');
+        }
+
+        // JSON 파싱
+        let rawResponse;
+        try {
+            rawResponse = JSON.parse(responseText);
+            console.log('[API] n8n Raw Response 수신 완료');
+        } catch (parseError) {
+            console.error('[API] JSON 파싱 실패:', parseError);
+            console.error('[API] 응답 내용 (처음 500자):', responseText.substring(0, 500));
+            throw new Error('n8n 응답을 JSON으로 파싱할 수 없습니다.');
+        }
 
         // 6. 🔥 [핵심] 복잡한 중첩 구조 파싱 로직
         let parsedAiResult = null;
