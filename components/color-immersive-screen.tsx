@@ -44,7 +44,7 @@ export default function ColorImmersiveScreen({ colorName, color, onBack }: Color
     >
       {/* Color name centered with elegant serif typography */}
       <div className="flex-1 flex items-center justify-center">
-        <h1 className={`text-5xl font-serif italic ${textColor} text-center leading-tight px-6`}>{colorName}</h1>
+        <h1 className={`text-5xl font-suit italic ${textColor} text-center leading-tight px-6`}>{colorName}</h1>
       </div>
 
       {/* Button at bottom with fade-in animation */}

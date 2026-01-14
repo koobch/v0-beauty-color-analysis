@@ -93,7 +93,7 @@ export default function LoadingScreen() {
 
                 {/* 메인 메시지 */}
                 <div className="text-center mb-6">
-                    <h2 className="text-lg font-normal text-neutral-800 mb-2">
+                    <h2 className="text-lg font-suit font-normal text-neutral-800 mb-2">
                         AI가 당신의 퍼스널 컬러를 분석하고 있어요
                     </h2>
                     <p className="text-sm text-neutral-500 font-light">
@@ -153,7 +153,7 @@ export default function LoadingScreen() {
                     <div className="flex items-start gap-3">
                         <span className="text-xl flex-shrink-0">💡</span>
                         <div className="flex-1">
-                            <h3 className="text-xs font-normal text-neutral-700 mb-1">뷰티 팁</h3>
+                            <h3 className="text-xs font-suit font-normal text-neutral-700 mb-1">뷰티 팁</h3>
                             <p className="text-sm text-neutral-600 font-light leading-relaxed animate-fade-in">
                                 {BEAUTY_TIPS[currentTip]}
                             </p>

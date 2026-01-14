@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import AdBanner from "@/components/AdBanner"
 import ComposeModal from "@/components/compose-modal"
-import { AnalysisResult, EXAMPLE_IMAGES, ExampleImage } from "@/lib/constants"
+import { AnalysisResult } from "@/lib/constants"
 import { composeImage } from "@/lib/api"
 
 interface ResultScreenProps {
@@ -21,11 +21,8 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
   // 결과 데이터가 없으면 아무것도 렌더링하지 않음 (상위에서 로딩 처리)
   if (!result) return null;
 
-  // 현재 퍼스널 컬러 타입에 맞는 예시 이미지 가져오기
-  const exampleImages: ExampleImage[] = EXAMPLE_IMAGES[result.type] || EXAMPLE_IMAGES["default"];
-
-  // 이미지 합성 핸들러
-  const handleComposeClick = async (exampleImageUrl: string, exampleDescription: string) => {
+  // AI 스타일링 이미지 생성 핸들러
+  const handleComposeClick = async () => {
     if (!capturedImage) {
       alert('사용자 이미지가 없습니다. 다시 촬영해주세요.');
       return;
@@ -33,9 +30,9 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
 
     // 🔥 확인 다이얼로그 추가
     const confirmed = confirm(
-      `"${exampleDescription}" 스타일을 당신의 얼굴에 합성하시겠습니까?\n\n` +
-      `⏱️ 약 15-20초 소요됩니다.\n` +
-      `💡 AI가 당신의 얼굴을 예시 이미지의 스타일로 변환합니다.\n\n` +
+      `당신의 퍼스널 컬러 "${result.name}"에 맞춘 AI 스타일링 이미지를 생성하시겠습니까?\n\n` +
+      `⏱️ 약 20-30초 소요됩니다.\n` +
+      `💡 AI가 당신의 사진과 퍼스널 컬러 분석 결과를 기반으로 스타일링 이미지를 생성합니다.\n\n` +
       `계속하시겠습니까?`
     );
 
@@ -48,28 +45,60 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
       setIsModalOpen(true) // 모달 열기 (로딩 상태)
       setComposedImageUrl(null)
 
-      console.log('[ResultScreen] Replicate Face Swap 시작:', exampleImageUrl);
+      console.log('[ResultScreen] AI 스타일링 이미지 생성 시작:', result.type);
 
-      const result = await composeImage(capturedImage, exampleImageUrl);
+      const composeResult = await composeImage(capturedImage, {
+        type: result.type,
+        name: result.name,
+        makeup_colors: result.makeup_colors,
+        fashion_colors: result.fashion_colors,
+        makeup_guide: result.makeup_guide,
+        fashion_guide: result.fashion_guide,
+      });
 
-      if (result.success && result.composedImageUrl) {
-        setComposedImageUrl(result.composedImageUrl)
-        console.log('[ResultScreen] 합성 성공');
+      if (composeResult.success && composeResult.composedImageUrl) {
+        setComposedImageUrl(composeResult.composedImageUrl)
+        console.log('[ResultScreen] AI 스타일링 성공');
       } else {
-        alert(`합성 실패: ${result.error || '알 수 없는 오류'}`);
+        alert(`AI 스타일링 실패: ${composeResult.error || '알 수 없는 오류'}`);
         setIsModalOpen(false) // 실패 시 모달 닫기
       }
     } catch (error) {
-      console.error('[ResultScreen] 합성 중 오류:', error);
-      alert('이미지 합성 중 오류가 발생했습니다.');
+      console.error('[ResultScreen] AI 스타일링 중 오류:', error);
+      alert('AI 스타일링 중 오류가 발생했습니다.');
       setIsModalOpen(false)
     } finally {
       setIsComposing(false)
     }
   }
 
+  // 결과 저장 핸들러 (스크린샷 안내)
+  const handleSaveResult = () => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      alert('📱 모바일: 스크린샷 기능으로 저장해주세요!\n• iOS: 전원 + 볼륨 상단 버튼\n• Android: 전원 + 볼륨 하단 버튼');
+    } else {
+      alert('💻 PC: 스크린샷 기능으로 저장해주세요!\n• Windows: Win + Shift + S\n• Mac: Cmd + Shift + 4');
+    }
+  }
+
+  // 공유 핸들러 (링크 복사)
+  const handleShare = async () => {
+    try {
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      alert('링크가 복사되었습니다! 친구에게 공유해보세요 📋');
+    } catch (error) {
+      console.error('링크 복사 오류:', error);
+      alert('링크 복사 중 오류가 발생했습니다.');
+    }
+  }
+
+
+
   return (
-    <div className="min-h-screen bg-[#FAF9F7] flex flex-col py-8 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#FAF9F7] via-[#F5F3F0] to-[#E8E6E3] flex flex-col py-8 px-6">
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
         {/* 광고 배너 */}
         <AdBanner
@@ -78,136 +107,133 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
           className="mb-6"
         />
 
-        {/* Title Section: API에서 받은 name과 subtitle 사용 */}
-        <div className="text-center mb-6">
-          <h1 className="text-[28px] font-light text-neutral-800 mb-2 tracking-tight">
+        {/* Title Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-[32px] font-suit font-medium text-neutral-800 mb-2 tracking-tight bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
             {result.name}
           </h1>
-          <p className="text-sm text-neutral-500 font-light">
+          <p className="text-sm text-neutral-600 font-light">
             {result.subtitle}
           </p>
         </div>
 
-        {/* Commentary Section: Eddy's Analysis */}
-        <div className="mb-6">
-          <div className="inline-block bg-[#E8E3DD] px-4 py-1.5 rounded-full mb-3">
-            <span className="text-xs font-normal text-neutral-700">Eddy's Analysis</span>
+
+        {/* Eddy's Analysis Card */}
+        <div className="mb-6 bg-white/60 backdrop-blur-md rounded-2xl p-5 border border-neutral-200/50 shadow-sm">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#E8E3DD] to-[#DDD8D2] px-4 py-2 rounded-full mb-4">
+            <span className="text-xs font-medium text-neutral-700">💬 Eddy's Analysis</span>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {(result.reasons || []).map((reason, index) => (
-              <p key={index} className="text-[13px] text-neutral-600 font-light leading-relaxed">
-                • {reason}
-              </p>
+              <div key={index} className="flex items-start gap-2">
+                <span className="text-[#D4A5A5] mt-1">•</span>
+                <p className="text-[13px] text-neutral-700 font-light leading-relaxed flex-1">
+                  {reason}
+                </p>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Makeup Color Card Section */}
-        <div className="mb-5">
-          <h2 className="text-base font-normal text-neutral-800 mb-3">Makeup Color Card</h2>
-          <div className="flex gap-3 justify-between mb-3 overflow-x-auto pb-2 scrollbar-hide">
-            {result.makeup_colors.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => onColorSelect(item.color, item.hex)}
-                className="flex flex-col items-center group min-w-[56px]"
-              >
-                {/* API에서 준 Hex 코드로 배경색 지정 */}
-                <div
-                  className="w-14 h-14 rounded-full shadow-sm group-hover:scale-110 transition-transform duration-300 border border-neutral-100"
-                  style={{ backgroundColor: item.hex }}
-                />
-                <span className="text-[10px] text-neutral-600 mt-1.5 font-light text-center leading-tight truncate w-full px-1">
-                  {item.color}
-                </span>
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-neutral-500 font-light leading-relaxed">
-            {result.makeup_guide}
-          </p>
-        </div>
-
-        {/* Fashion Color Card Section */}
-        <div className="mb-6">
-          <h2 className="text-base font-normal text-neutral-800 mb-3">Fashion Color Card</h2>
-          <div className="flex gap-3 justify-between mb-3 overflow-x-auto pb-2 scrollbar-hide">
-            {result.fashion_colors.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => onColorSelect(item.color, item.hex)}
-                className="flex flex-col items-center group min-w-[56px]"
-              >
-                {/* API에서 준 Hex 코드로 배경색 지정 */}
-                <div
-                  className="w-14 h-14 rounded-full shadow-sm group-hover:scale-110 transition-transform duration-300 border border-neutral-100"
-                  style={{ backgroundColor: item.hex }}
-                />
-                <span className="text-[10px] text-neutral-600 mt-1.5 font-light text-center leading-tight truncate w-full px-1">
-                  {item.color}
-                </span>
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-neutral-500 font-light leading-relaxed">
-            {result.fashion_guide}
-          </p>
-        </div>
-
-        {/* 🔥 NEW: Try On Example Styles Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-normal text-neutral-800">Try On Example Styles</h2>
-            <span className="inline-block bg-[#D4A5A5] text-white text-[10px] px-2 py-0.5 rounded-full">
-              AI
-            </span>
-          </div>
-          <p className="text-xs text-neutral-500 font-light mb-3">
-            내 얼굴에 {result.name} 스타일을 입혀보세요
-          </p>
-
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {exampleImages.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleComposeClick(img.url, img.description)}
-                disabled={isComposing}
-                className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 group disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <img
-                  src={img.url}
-                  alt={img.description}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 text-white text-sm font-normal bg-neutral-800/80 px-3 py-1.5 rounded-full transition-opacity">
-                    합성하기
+        {/* Color Cards - Bento Grid Style */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {/* Makeup Colors Card */}
+          <div className="col-span-2 bg-white rounded-2xl p-5 border border-neutral-200">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">💄</span>
+              <h2 className="text-base font-suit font-medium text-neutral-800">메이크업</h2>
+            </div>
+            <div className="grid grid-cols-4 gap-3 mb-3">
+              {result.makeup_colors.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => onColorSelect(item.color, item.hex)}
+                  className="flex flex-col items-center group"
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl group-hover:scale-105 transition-transform duration-200 border border-neutral-200"
+                    style={{ backgroundColor: item.hex }}
+                  />
+                  <span className="text-[9px] text-neutral-600 mt-1.5 font-serif italic text-center leading-tight truncate w-full px-1">
+                    {item.color}
                   </span>
-                </div>
-                <div className="absolute bottom-2 left-2 right-2">
-                  <span className="text-[10px] text-white bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full block text-center">
-                    {img.description}
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-neutral-600 font-light leading-relaxed">
+              {result.makeup_guide}
+            </p>
           </div>
 
-          <p className="text-[11px] text-neutral-400 font-light text-center">
-            💡 AI가 당신의 얼굴에 예시 스타일을 합성합니다 (약 10-15초 소요)
+          {/* Fashion Colors Card */}
+          <div className="col-span-2 bg-white rounded-2xl p-5 border border-neutral-200">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">👗</span>
+              <h2 className="text-base font-suit font-medium text-neutral-800">패션</h2>
+            </div>
+            <div className="grid grid-cols-4 gap-3 mb-3">
+              {result.fashion_colors.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => onColorSelect(item.color, item.hex)}
+                  className="flex flex-col items-center group"
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl group-hover:scale-105 transition-transform duration-200 border border-neutral-200"
+                    style={{ backgroundColor: item.hex }}
+                  />
+                  <span className="text-[9px] text-neutral-600 mt-1.5 font-serif italic text-center leading-tight truncate w-full px-1">
+                    {item.color}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-neutral-600 font-light leading-relaxed">
+              {result.fashion_guide}
+            </p>
+          </div>
+        </div>
+
+        {/* AI Styling Button */}
+        <div className="mb-4 bg-gradient-to-r from-[#D4A5A5]/10 to-[#C89595]/10 rounded-2xl p-4 border border-[#D4A5A5]/20">
+          <button
+            onClick={handleComposeClick}
+            disabled={isComposing}
+            className="w-full bg-gradient-to-r from-[#D4A5A5] to-[#C89595] hover:from-[#C89595] hover:to-[#B88585] text-white rounded-xl py-4 text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isComposing ? (
+              <>
+                <div className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                <span>AI 스타일링 생성 중...</span>
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12a9 9 0 11-6.219-8.56" />
+                </svg>
+                <span>내 스타일링 이미지 생성하기</span>
+              </>
+            )}
+          </button>
+          <p className="text-[10px] text-center text-neutral-500 mt-2">
+            💡 AI가 퍼스널 컬러 기반으로 맞춤 스타일링을 생성해요 (20-30초)
           </p>
         </div>
 
         {/* Action Button Section */}
-        <div className="flex gap-2.5 mt-auto">
-          <Button className="flex-1 bg-neutral-800 hover:bg-neutral-900 text-white rounded-full py-5 text-[13px] font-normal shadow-sm">
-            Save Results
+        <div className="flex gap-3 mt-auto">
+          <Button
+            onClick={handleSaveResult}
+            className="flex-1 bg-gradient-to-r from-neutral-800 to-neutral-700 hover:from-neutral-900 hover:to-neutral-800 text-white rounded-2xl py-5 text-[13px] font-medium shadow-lg hover:shadow-xl transition-all"
+          >
+            결과 저장
           </Button>
           <Button
+            onClick={handleShare}
             variant="outline"
-            className="flex-1 border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 rounded-full py-5 text-[13px] font-normal"
+            className="flex-1 border-2 border-neutral-300 bg-white/80 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-2xl py-5 text-[13px] font-medium shadow-md hover:shadow-lg transition-all"
           >
-            Share with Friends
+            공유
           </Button>
         </div>
       </div>
