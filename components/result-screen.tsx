@@ -19,6 +19,7 @@ export default function ResultScreen({ result, capturedImage, onColorSelect }: R
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // 결과 데이터가 없으면 아무것도 렌더링하지 않음 (상위에서 로딩 처리)
+  //버전 수정
   if (!result) return null;
 
   // AI 스타일링 이미지 생성 핸들러
