@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 
+const APP_VERSION = "1.0.0"
+
 // 8 palette combinations that will rotate
 const COLOR_PALETTES = [
   ["#FFB3BA", "#FFDFBA", "#FFFFBA", "#BAFFC9", "##BAE1FF"],
@@ -91,6 +93,13 @@ export default function LandingScreen({ onStart }: LandingScreenProps) {
           </div>
         </div>
 
+      </div>
+
+      {/* Version Info - 우측 하단 */}
+      <div className="absolute bottom-6 right-6 z-20">
+        <div className="bg-white/40 backdrop-blur-sm rounded-full px-3 py-1.5 border border-neutral-200/30">
+          <p className="text-xs text-neutral-500 font-light">v{APP_VERSION}</p>
+        </div>
       </div>
     </div>
   )
